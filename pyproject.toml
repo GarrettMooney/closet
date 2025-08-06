@@ -9,11 +9,13 @@ authors = [
 requires-python = ">=3.13"
 dependencies = [
     "polars>=1.32.0",
+    "rich>=13.7.1",
+    "srsly>=2.4.8",
     "yt-dlp>=2024.7.25",
 ]
 
 [project.scripts]
-update-playlist = "closet.main:main"
+update-playlist = "closet.playlist:main"
 
 [build-system]
 requires = ["hatchling"]
