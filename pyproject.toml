@@ -16,6 +16,7 @@ dependencies = [
 
 [project.scripts]
 update-playlist = "closet.playlist:main"
+report = "closet.report:main"
 
 [build-system]
 requires = ["hatchling"]
