@@ -69,17 +69,37 @@ def main():
     playlist_data = srsly.read_json(PLAYLIST_JSON_PATH)
     playlist_df = pl.DataFrame(playlist_data).select(["id", "url", "title"])
 
-    # Step 3: Check for existing enriched data
+    # Step 3: Check for existing enriched data and identify videos to process
     if PLAYLIST_WITH_SUBTITLES_JSON_PATH.exists():
         try:
             enriched_data = list(srsly.read_jsonl(PLAYLIST_WITH_SUBTITLES_JSON_PATH))
             enriched_df = pl.DataFrame(enriched_data).select(
                 ["id", "url", "title", "subtitles"]
             )
-            # Filter out videos that already have subtitles
-            playlist_df = playlist_df.filter(
+            
+            # Identify new videos
+            new_videos_df = playlist_df.filter(
                 ~pl.col("id").is_in(enriched_df["id"])
             )
+            
+            # Identify existing videos with missing subtitles
+            missing_subtitles_df = enriched_df.filter(pl.col("subtitles").is_null())
+            
+            # Combine the two sets of videos to process
+            videos_to_process_df = pl.concat([
+                new_videos_df,
+                missing_subtitles_df.select(["id", "url", "title"])
+            ]).unique(subset=["id"])
+
+            if videos_to_process_df.is_empty():
+                console.log("No new videos or missing subtitles to process. Exiting.")
+                console.save_html(str(LOG_HTML_PATH))
+                return
+            
+            playlist_df = videos_to_process_df
+            # Remove videos with missing subtitles from the main enriched_df to avoid duplicates
+            enriched_df = enriched_df.filter(pl.col("subtitles").is_not_null())
+
         except Exception:
             # If the existing file is malformed, start fresh
             enriched_df = pl.DataFrame()
@@ -91,7 +111,7 @@ def main():
         subtitles = []
         for video_id in playlist_df["id"]:
             retries = 5
-            base_delay = 1.0
+            base_delay = 3.0
             for attempt in range(retries):
                 try:
                     subtitles.append(get_subtitles(video_id))
@@ -119,6 +139,9 @@ def main():
                 # All retries failed
                 console.log(f"All retries failed for {video_id}.", style="red")
                 subtitles.append(None)
+            
+            # Add a small delay between each video to be a good citizen
+            time.sleep(1)
         
         playlist_df = playlist_df.with_columns(pl.Series("subtitles", subtitles))
         
