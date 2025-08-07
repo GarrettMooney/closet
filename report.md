@@ -1,20 +1,20 @@
 # Data Enrichment Report
 
-*Last updated: 2025-08-07 22:09:57 UTC*
+*Last updated: 2025-08-07 22:14:51 UTC*
 
 ## Summary
 
-**Total videos:** 345
+**Total videos:** 363
 
 ## Subtitle Enrichment
 
-- **Videos with subtitles:** 323
-- **Enrichment percentage:** 93.62%
+- **Videos with subtitles:** 331
+- **Enrichment percentage:** 91.18%
 
 ## Structured Data Enrichment
 
-- **Videos with structured data:** 313
-- **Enrichment percentage:** 90.72%
+- **Videos with structured data:** 316
+- **Enrichment percentage:** 87.05%
 
 ---
 
