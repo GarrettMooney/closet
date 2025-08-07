@@ -1,10 +1,8 @@
 <div align="center">
 
-# <img src="assets/logo.png" alt="Criterion Closet Logo" width="64" height="64" style="vertical-align: middle;"> Criterion Closet
+# Criterion Closet
 
-[![Data Pipeline](https://github.com/GarrettMooney/closet/actions/workflows/update-playlist.yml/badge.svg)](https://github.com/GarrettMooney/closet/actions/workflows/update-playlist.yml)
-
-*An automated data playground for exploring the Criterion Closet YouTube playlist*
+*A dataset for exploring the Criterion Closet picks*
 
 </div>
 
@@ -95,7 +93,7 @@ The entire data pipeline runs automatically via GitHub Actions:
 - **Schedule**: Daily at midnight UTC
 - **Triggers**: New commits to main branch + manual runs
 - **Smart Commits**: Only saves meaningful changes (new films, not just metadata updates like "how many views does this video have?")
-- **Monitoring**: Full pipeline logs and status badges
+- **Monitoring**: Full pipeline logs available in GitHub Actions
 
 ---
 
