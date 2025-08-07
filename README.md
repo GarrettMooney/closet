@@ -19,7 +19,7 @@ We will start with things that are relatively simple like counting and full-text
 
 ## 🔄 How it Works
 
-Our automated pipeline runs daily, transforming raw playlist data into rich, structured insights:
+Our automated pipeline runs weekly, transforming raw playlist data into rich, structured insights:
 
 ```
 📺 Fetch Videos → 📝 Extract Subtitles → 🤖 LLM Analysis → 📊 Generate Reports
@@ -90,7 +90,7 @@ Current work-in-progress features include:
 
 The entire data pipeline runs automatically via GitHub Actions:
 
-- **Schedule**: Daily at midnight UTC
+- **Schedule**: Weekly on Sunday at midnight UTC
 - **Triggers**: New commits to main branch + manual runs
 - **Smart Commits**: Only saves meaningful changes (new films, not just metadata updates like "how many views does this video have?")
 - **Monitoring**: Full pipeline logs available in GitHub Actions
