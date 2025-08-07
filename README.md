@@ -4,7 +4,7 @@ This project contains tools for interacting with the Criterion Closet YouTube pl
 This repo is centered around building up a dataset to poke at over time with various experiments.
 We will start with things that are relatively simple like counting and full-text-search, but will work our way up to trying out more novel techniques on the dataset as we get inspired by new repos or arxiv papers.
 
-The main goal is to have a fun sandbox and to play!
+The main goal is to have a fun data sandbox to play in!
 
 ## Core Features
 
@@ -73,7 +73,7 @@ The project uses GitHub Actions to automatically maintain and enrich the dataset
 
 1. Fetches new videos from the Criterion Closet playlist
 2. Downloads subtitles for new videos
-3. Extracts structured data using AI
+3. Extracts structured data using an LLM
 4. Generates an updated data completeness report
 5. Commits changes only when meaningful updates occur
 
