@@ -11,6 +11,8 @@ on:
 jobs:
   data-pipeline:
     runs-on: ubuntu-latest
+    permissions:
+      contents: write
     
     steps:
       - name: Checkout repository
@@ -37,6 +39,8 @@ jobs:
 
       - name: Step 3 - Get structured data
         run: uv run get-structured-data
+        env:
+          GOOGLE_API_KEY: ${{ secrets.GOOGLE_API_KEY }}
 
       - name: Step 4 - Generate report
         run: uv run report
