@@ -1,6 +1,6 @@
 <div align="center">
 
-# Criterion Closet
+# Closet
 
 *A dataset for exploring the Criterion Closet picks*
 
@@ -10,7 +10,7 @@
 
 ## What is this?
 
-The **Criterion Closet** is a dataset built around the YouTube series where filmmakers pick their favorite films from the Criterion Collection. 
+The **Closet** is repo for updating the dataset built from [the YouTube series](https://www.youtube.com/playlist?list=PL7D89754A5DAD1E8E) where filmmakers pick their favorite films from the Criterion Collection. 
 
 This project automatically collects, enriches, and analyzes every episode to help you discover patterns, popular picks, and (try to) get personalized film recommendations.
 
