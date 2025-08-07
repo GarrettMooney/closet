@@ -1,12 +1,10 @@
 <div align="center">
 
-# 🍿 Criterion Closet
+# <img src="assets/logo.png" alt="Criterion Closet Logo" width="64" height="64" style="vertical-align: middle;"> Criterion Closet
 
 [![Data Pipeline](https://github.com/GarrettMooney/closet/actions/workflows/update-playlist.yml/badge.svg)](https://github.com/GarrettMooney/closet/actions/workflows/update-playlist.yml)
 
 *An automated data playground for exploring the Criterion Closet YouTube playlist*
-
-![Banner](assets/banner.png)
 
 </div>
 
