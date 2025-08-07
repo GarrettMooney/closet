@@ -2,14 +2,24 @@ import os
 import re
 import subprocess
 import tempfile
-from typing import Optional
 
 from closet.errors import RateLimitError, SubtitleError
 
 
 def get_subtitles(video_id: str, language: str = "en") -> str:
-    """
-    Load YouTube video subtitles as a fragment.
+    """Load YouTube video subtitles as a fragment.
+
+    Parameters
+    ----------
+    video_id : str
+        The ID of the YouTube video.
+    language : str, optional
+        The language of the subtitles to fetch, by default "en"
+
+    Returns
+    -------
+    str
+        The cleaned subtitle content.
     """
     with tempfile.TemporaryDirectory() as temp_dir:
         try:
@@ -29,8 +39,16 @@ def get_subtitles(video_id: str, language: str = "en") -> str:
 
 
 def _download_subtitles(video_id: str, language: str, temp_dir: str):
-    """
-    Download subtitles using yt-dlp.
+    """Download subtitles using yt-dlp.
+
+    Parameters
+    ----------
+    video_id : str
+        The ID of the YouTube video.
+    language : str
+        The language of the subtitles to fetch.
+    temp_dir : str
+        The temporary directory to download the subtitles to.
     """
     base_cmd = [
         "yt-dlp",
@@ -41,7 +59,7 @@ def _download_subtitles(video_id: str, language: str, temp_dir: str):
         f"{temp_dir}/%(id)s.%(ext)s",
         f"https://www.youtube.com/watch?v={video_id}",
     ]
-    
+
     # Try to download manually created subtitles first
     manual_cmd = base_cmd + ["--write-sub", "--sub-lang", language]
     subprocess.run(manual_cmd, check=True, capture_output=True, text=True)
@@ -53,24 +71,40 @@ def _download_subtitles(video_id: str, language: str, temp_dir: str):
 
 
 def _read_subtitle_file(temp_dir: str) -> str:
-    """
-    Read the downloaded subtitle file from the temporary directory.
+    """Read the downloaded subtitle file from the temporary directory.
+
+    Parameters
+    ----------
+    temp_dir : str
+        The temporary directory where the subtitles were downloaded.
+
+    Returns
+    -------
+    str
+        The content of the subtitle file.
     """
     subtitle_files = [
-        os.path.join(temp_dir, f)
-        for f in os.listdir(temp_dir)
-        if f.endswith(".vtt")
+        os.path.join(temp_dir, f) for f in os.listdir(temp_dir) if f.endswith(".vtt")
     ]
     if not subtitle_files:
         raise SubtitleError("No subtitle file found.")
-    
+
     with open(subtitle_files[0], "r", encoding="utf-8") as f:
         return f.read()
 
 
 def _clean_vtt_content(content: str) -> str:
-    """
-    Clean up the VTT subtitle content to make it more readable.
+    """Clean up the VTT subtitle content to make it more readable.
+
+    Parameters
+    ----------
+    content : str
+        The raw VTT subtitle content.
+
+    Returns
+    -------
+    str
+        The cleaned subtitle content.
     """
     lines = content.split("\n")
     cleaned_lines = []
@@ -81,7 +115,12 @@ def _clean_vtt_content(content: str) -> str:
     while i < len(lines):
         line = lines[i].strip()
 
-        if not line or line.startswith("WEBVTT") or line.startswith("Kind:") or line.startswith("Language:"):
+        if (
+            not line
+            or line.startswith("WEBVTT")
+            or line.startswith("Kind:")
+            or line.startswith("Language:")
+        ):
             i += 1
             continue
 

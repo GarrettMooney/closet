@@ -1,38 +1,52 @@
-name: Update Playlist
+name: Data Pipeline
 
 on:
   schedule:
-    - cron: "0 0 * * *" # Runs every day at midnight
+    - cron: "0 0 * * *" # Runs every day at midnight UTC
+  workflow_dispatch: # Allow manual triggering
   push:
     branches:
       - main
 
 jobs:
-  update-playlist:
+  data-pipeline:
     runs-on: ubuntu-latest
-
+    
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Install uv
         uses: astral-sh/setup-uv@v1
 
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: "3.13"
+
       - name: Install dependencies
         run: uv pip install -e .
 
-      - name: Fetch playlist
-        run: uv run update-playlist
+      - name: Step 1 - Fetch new videos
+        run: uv run get-new-videos
 
-      - name: Commit and push if changed
-        run: |
-          git config --global user.name "github-actions[bot]"
-          git config --global user.email "github-actions[bot]@users.noreply.github.com"
-          git add data/
-          git diff --staged --quiet || (git commit -m "Update playlist data" && git push)
+      - name: Step 2 - Get subtitles
+        run: uv run get-subtitles
+
+      - name: Step 3 - Get structured data
+        run: uv run get-structured-data
+
+      - name: Step 4 - Generate report
+        run: uv run report
+
+      - name: Step 5 - Conditional commit and push
+        run: uv run scripts/conditional_commit.py
 
       - name: Upload log artifact
         uses: actions/upload-artifact@v4
+        if: always()
         with:
-          name: log
+          name: pipeline-log
           path: data/log.html

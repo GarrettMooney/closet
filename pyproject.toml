@@ -8,15 +8,27 @@ authors = [
 ]
 requires-python = ">=3.13"
 dependencies = [
+    "mirascope[google]>=1.25.5",
     "polars>=1.32.0",
     "rich>=13.7.1",
     "srsly>=2.4.8",
+    "typer>=0.12.3",
     "yt-dlp>=2024.7.25",
 ]
 
 [project.scripts]
-update-playlist = "closet.playlist:main"
+get-new-videos = "closet.get_new_videos:main"
+get-subtitles = "closet.get_subtitles:main"
+get-structured-data = "closet.get_structured_data:main"
 report = "closet.report:main"
+popularity = "closet.popularity:main"
+recommend = "closet.recommend:main"
+index = "closet.experimental.index:main"
+api = "closet.experimental.api:main"
+
+[project.optional-dependencies]
+dev = ["pytest"]
+experimental = ["fastapi>=0.111.0", "uvicorn>=0.29.0", "redis>=5.0.4"]
 
 [build-system]
 requires = ["hatchling"]
