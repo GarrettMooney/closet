@@ -31,7 +31,7 @@ Our automated pipeline runs weekly, transforming raw playlist data into rich, st
 
 ## 🚀 Quick Start
 
-Install the project using `uv`:
+Install the project using `uv` (see [here](https://docs.astral.sh/uv/getting-started/installation/) for how to install uv):
 
 ```bash
 uv pip install -e .
