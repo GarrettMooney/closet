@@ -22,7 +22,7 @@ We will start with things that are relatively simple like counting and full-text
 Our automated pipeline runs daily, transforming raw playlist data into rich, structured insights:
 
 ```
-📺 Fetch Videos → 📝 Extract Subtitles → 🤖 LLM Analysis → 📊 Generate Reports
+📺 Fetch Videos → 📝 Extract Subtitles → 🤖 LLM Analysis → 📊 Generate Report on Completeness
 ```
 
 - **📺 Data Collection**: Automatically discovers new videos from the Criterion Closet playlist
