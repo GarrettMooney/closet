@@ -1,80 +1,106 @@
-# Criterion Closet
+<div align="center">
 
-This project contains tools for interacting with the Criterion Closet YouTube playlist.
+# 🍿 Criterion Closet
+
+[![Data Pipeline](https://github.com/GarrettMooney/closet/actions/workflows/update-playlist.yml/badge.svg)](https://github.com/GarrettMooney/closet/actions/workflows/update-playlist.yml)
+
+*An automated data playground for exploring the Criterion Closet YouTube playlist*
+
+![Banner](assets/banner.png)
+
+</div>
+
+---
+
+## What is this?
+
+The **Criterion Closet** is a dataset built around the YouTube series where filmmakers pick their favorite films from the Criterion Collection. 
+
+This project automatically collects, enriches, and analyzes every episode to help you discover patterns, popular picks, and (try to) get personalized film recommendations.
+
 This repo is centered around building up a dataset to poke at over time with various experiments.
 We will start with things that are relatively simple like counting and full-text-search, but will work our way up to trying out more novel techniques on the dataset as we get inspired by new repos or arxiv papers.
 
-The main goal is to have a fun data sandbox to play in!
+## 🔄 How it Works
 
-## Core Features
+Our automated pipeline runs daily, transforming raw playlist data into rich, structured insights:
 
--   **Data Pipeline:** Fetch the playlist, enrich it with subtitles, and extract structured data.
--   **Popularity:** Find the most popular films in the Criterion Closet.
--   **Recommendations:** Get movie recommendations based on a list of titles.
+```
+📺 Fetch Videos → 📝 Extract Subtitles → 🤖 LLM Analysis → 📊 Generate Reports
+```
 
-## Installation
+- **📺 Data Collection**: Automatically discovers new videos from the Criterion Closet playlist
+- **📝 Content Enrichment**: Downloads subtitles, metadata, and uses LLMs to extract film mentions
+- **📊 Reporting**: Generates data completeness reports and tracks enrichment progress
 
-Install the project and its dependencies using `uv`:
+## 🚀 Quick Start
+
+Install the project using `uv`:
 
 ```bash
 uv pip install -e .
 ```
 
-## Usage
+## 💡 Usage
 
-The core features of this project are exposed through two main scripts: `popularity` and `recommend`. The data pipeline that fetches and enriches the data will be run automatically (e.g., via GitHub Actions).
+### Find the Most Popular Films
 
-### Find Popular Films
-
-To see a list of the most popular movies, run:
+Discover which films are mentioned most frequently across all episodes:
 
 ```bash
 uv run popularity
 ```
 
-This will output a list of the most frequently selected films in the Criterion Closet.
+### Get Personalized Recommendations
 
-### Get Recommendations
+Get film suggestions based on your favorite picks:
 
-To get movie recommendations based on one or more films, run:
+```bash
+uv run recommend "The Red Shoes"
+```
+
+You can also provide multiple films as a comma-separated string:
 
 ```bash
 uv run recommend "The Red Shoes, The 400 Blows"
 ```
 
-This will provide a list of recommended films based on the co-occurrence of the films you provided.
+### Generate a Data Report
 
-## Experimental Features
-
-This project also includes WIP experimental features, such as a Redis-backed search index and a FastAPI and Svelte frontend. For more information, please see the [experimental features documentation](src/closet/experimental/README.md).
-
-## Data Completeness
-
-The project automatically generates a data enrichment report as part of the GitHub Actions pipeline that runs daily. You can always find the latest report in the `report.md` file at the root of this repository.
-
-The report includes:
-- Total number of videos in the dataset
-- Percentage of videos with subtitles
-- Percentage of videos with structured data (guest, year, movies)
-
-### Manual Report Generation
-
-To generate a report locally during development, run:
+Check the health and completeness of your dataset:
 
 ```bash
 uv run report
 ```
 
-This will display the report in your terminal and update the `report.md` file.
+**NB:** This is run as part of the automated pipeline, but you can run it manually to see the latest stats.
 
-## Automated Data Pipeline
+## 📊 Live Data
 
-The project uses GitHub Actions to automatically maintain and enrich the dataset daily. The pipeline:
+The pipeline automatically maintains fresh data and generates reports. Check out [`report.md`](report.md) for the latest statistics on dataset completeness, including subtitle coverage and structured data enrichment percentages.
 
-1. Fetches new videos from the Criterion Closet playlist
-2. Downloads subtitles for new videos
-3. Extracts structured data using an LLM
-4. Generates an updated data completeness report
-5. Commits changes only when meaningful updates occur
+## 🧪 Experimental Features
 
-The pipeline is configured to run daily at midnight UTC and can also be triggered manually from the GitHub Actions tab.
+We're always experimenting! 
+
+Current work-in-progress features include:
+
+- **Redis-backed search index** for lightning-fast film lookups
+- **FastAPI + Svelte frontend** for interactive data exploration
+
+[→ Learn more about experimental features](src/closet/experimental/README.md)
+
+## 🤖 Automation
+
+The entire data pipeline runs automatically via GitHub Actions:
+
+- **Schedule**: Daily at midnight UTC
+- **Triggers**: New commits to main branch + manual runs
+- **Smart Commits**: Only saves meaningful changes (new films, not just metadata updates like "how many views does this video have?")
+- **Monitoring**: Full pipeline logs and status badges
+
+---
+
+<div align="center">
+<i>Built with ❤️ for the movie nerd community</i>
+</div>
