@@ -1,7 +1,7 @@
 from unittest.mock import patch
 
 import polars as pl
-from closet.recommend import RankingStrategy, calculate_recommendations, load_data
+from closet.recommend import calculate_recommendations, load_data
 
 
 def test_calculate_recommendations(enriched_playlist_path):
@@ -10,7 +10,5 @@ def test_calculate_recommendations(enriched_playlist_path):
     """
     with patch("closet.recommend.ENRICHED_PLAYLIST_JSON_PATH", enriched_playlist_path):
         df = load_data()
-        recommendations = calculate_recommendations(
-            df, ["movie a"], RankingStrategy.LIFT_SUM
-        )
-        assert sorted(recommendations["movie_right"].to_list()) == ["movie b", "movie c"]
+        recommendations = calculate_recommendations(df, ["movie a"])
+        assert recommendations["movie_right"].to_list() == ["movie c", "movie b"]
