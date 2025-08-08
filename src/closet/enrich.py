@@ -1,13 +1,7 @@
-from pathlib import Path
 from typing import List
 
 from mirascope import llm
 from pydantic import BaseModel, Field
-
-
-DATA_DIR = Path("data")
-PLAYLIST_WITH_SUBTITLES_JSON_PATH = DATA_DIR / "playlist_with_subtitles.json"
-ENRICHED_PLAYLIST_JSON_PATH = DATA_DIR / "enriched_playlist.json"
 
 
 class Movie(BaseModel):

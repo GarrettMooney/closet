@@ -4,7 +4,7 @@ from typing import Dict
 import polars as pl
 import srsly
 
-from closet.config import ENRICHED_PLAYLIST_JSON_PATH
+from closet.config import ENRICHED_PLAYLIST_JSON_PATH, REPORT_MD_PATH
 from closet.logging import console
 from pathlib import Path
 
@@ -136,11 +136,10 @@ def main():
     enriched_df = load_data()
     report = generate_report(enriched_df)
     display_report(report)
-    
+
     # Save report to markdown file
-    report_path = Path("report.md")
-    save_report_to_markdown(report, report_path)
-    console.print(f"\n[dim]Report saved to {report_path}[/dim]")
+    save_report_to_markdown(report, REPORT_MD_PATH)
+    console.print(f"\n[dim]Report saved to {REPORT_MD_PATH}[/dim]")
 
 
 if __name__ == "__main__":

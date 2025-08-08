@@ -11,8 +11,46 @@ from closet.logging import console
 from closet.subtitles import get_subtitles
 
 
-def get_videos_to_process() -> Tuple[pl.DataFrame, pl.DataFrame]:
+def load_playlist() -> pl.DataFrame:
+    """Loads the playlist data from the JSON file.
+
+    Returns
+    -------
+    pl.DataFrame
+        A DataFrame containing the playlist data.
+    """
+    playlist_data = srsly.read_json(PLAYLIST_JSON_PATH)
+    return pl.DataFrame(playlist_data).select(["id", "url", "title"])
+
+
+def load_enriched_playlist() -> pl.DataFrame:
+    """Loads the enriched playlist data from the JSONL file.
+
+    Returns
+    -------
+    pl.DataFrame
+        A DataFrame containing the enriched playlist data.
+    """
+    if not PLAYLIST_WITH_SUBTITLES_JSON_PATH.exists():
+        return pl.DataFrame()
+    try:
+        enriched_data = list(srsly.read_jsonl(PLAYLIST_WITH_SUBTITLES_JSON_PATH))
+        return pl.DataFrame(enriched_data).select(["id", "url", "title", "subtitles"])
+    except Exception:
+        return pl.DataFrame()
+
+
+def get_videos_to_process(
+    playlist_df: pl.DataFrame, enriched_df: pl.DataFrame
+) -> Tuple[pl.DataFrame, pl.DataFrame]:
     """Identifies which videos need to be processed for subtitles.
+
+    Parameters
+    ----------
+    playlist_df : pl.DataFrame
+        The DataFrame of all videos in the playlist.
+    enriched_df : pl.DataFrame
+        The DataFrame of videos that are already enriched with subtitles.
 
     Returns
     -------
@@ -21,36 +59,23 @@ def get_videos_to_process() -> Tuple[pl.DataFrame, pl.DataFrame]:
         - The first DataFrame contains the videos that need to be processed.
         - The second DataFrame contains the videos that are already enriched with subtitles.
     """
-    playlist_data = srsly.read_json(PLAYLIST_JSON_PATH)
-    playlist_df = pl.DataFrame(playlist_data).select(["id", "url", "title"])
-
-    if not PLAYLIST_WITH_SUBTITLES_JSON_PATH.exists():
+    if enriched_df.is_empty():
         return playlist_df, pl.DataFrame()
 
-    try:
-        enriched_data = list(srsly.read_jsonl(PLAYLIST_WITH_SUBTITLES_JSON_PATH))
-        enriched_df = pl.DataFrame(enriched_data).select(
-            ["id", "url", "title", "subtitles"]
-        )
+    new_videos_df = playlist_df.join(enriched_df, on="id", how="anti")
+    missing_subtitles_df = enriched_df.filter(pl.col("subtitles").is_null())
 
-        new_videos_df = playlist_df.join(
-            enriched_df, on="id", how="anti"
-        )
-        missing_subtitles_df = enriched_df.filter(pl.col("subtitles").is_null())
+    videos_to_process_df = pl.concat(
+        [
+            new_videos_df,
+            missing_subtitles_df.select(["id", "url", "title"]),
+        ]
+    ).unique(subset=["id"])
 
-        videos_to_process_df = pl.concat(
-            [
-                new_videos_df,
-                missing_subtitles_df.select(["id", "url", "title"]),
-            ]
-        ).unique(subset=["id"])
-
-        return (
-            videos_to_process_df,
-            enriched_df.filter(pl.col("subtitles").is_not_null()),
-        )
-    except Exception:
-        return playlist_df, pl.DataFrame()
+    return (
+        videos_to_process_df,
+        enriched_df.filter(pl.col("subtitles").is_not_null()),
+    )
 
 
 def fetch_subtitles_for_videos(videos_df: pl.DataFrame) -> pl.DataFrame:
@@ -67,12 +92,14 @@ def fetch_subtitles_for_videos(videos_df: pl.DataFrame) -> pl.DataFrame:
         A DataFrame with the subtitles added.
     """
     subtitles = []
-    for video_id in videos_df["id"]:
+    for video in videos_df.iter_rows(named=True):
+        video_id = video["id"]
         retries = 3
         base_delay = 1.0
         for attempt in range(retries):
             try:
-                subtitles.append(get_subtitles(video_id))
+                subtitle = get_subtitles(video_id)
+                subtitles.append(subtitle)
                 console.log(
                     f"Successfully fetched subtitles for {video_id}", style="green"
                 )
@@ -113,11 +140,11 @@ def update_enriched_playlist(
     existing_enriched_df : pl.DataFrame
         A DataFrame with the existing enriched data.
     """
-    if not existing_enriched_df.is_empty():
-        final_df = pl.concat([existing_enriched_df, newly_enriched_df])
-    else:
-        final_df = newly_enriched_df
-
+    final_df = (
+        pl.concat([existing_enriched_df, newly_enriched_df])
+        if not existing_enriched_df.is_empty()
+        else newly_enriched_df
+    )
     final_df = final_df.unique(subset=["id"], keep="last")
     data_to_save = final_df.select(["id", "url", "title", "subtitles"]).to_dicts()
     srsly.write_jsonl(PLAYLIST_WITH_SUBTITLES_JSON_PATH, data_to_save, append=False)
@@ -126,7 +153,11 @@ def update_enriched_playlist(
 
 def main():
     """Main entry point for the script."""
-    videos_to_process_df, existing_enriched_df = get_videos_to_process()
+    playlist_df = load_playlist()
+    enriched_df = load_enriched_playlist()
+    videos_to_process_df, existing_enriched_df = get_videos_to_process(
+        playlist_df, enriched_df
+    )
 
     if videos_to_process_df.is_empty():
         console.log("No new videos or missing subtitles to process. Exiting.")

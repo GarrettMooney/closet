@@ -17,9 +17,7 @@ dependencies = [
 ]
 
 [project.scripts]
-get-new-videos = "closet.get_new_videos:main"
-get-subtitles = "closet.get_subtitles:main"
-get-structured-data = "closet.get_structured_data:main"
+update-playlist = "closet.main:main"
 report = "closet.report:main"
 popularity = "closet.popularity:main"
 recommend = "closet.recommend:main"

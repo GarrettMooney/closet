@@ -6,4 +6,5 @@ PLAYLIST_JSON_PATH = DATA_DIR / "playlist.json"
 PLAYLIST_WITH_SUBTITLES_JSON_PATH = DATA_DIR / "playlist_with_subtitles.json"
 ENRICHED_PLAYLIST_JSON_PATH = DATA_DIR / "enriched_playlist.json"
 LOG_HTML_PATH = DATA_DIR / "log.html"
+REPORT_MD_PATH = Path("report.md")
 INDEX_NAME = "closet"

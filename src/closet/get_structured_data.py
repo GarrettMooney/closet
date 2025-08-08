@@ -9,13 +9,13 @@ from closet.enrich import _extract_structured_data_from_record
 from closet.logging import console
 
 
-def load_data() -> Generator[Dict, None, None]:
+def load_playlist_with_subtitles() -> Generator[Dict, None, None]:
     """Loads the playlist data with subtitles.
 
     Yields
     ------
-    Dict
-        The playlist data as a generator of dictionaries.
+    Generator[Dict, None, None]
+        A generator of dictionaries, where each dictionary represents a video.
 
     Raises
     ------
@@ -28,7 +28,7 @@ def load_data() -> Generator[Dict, None, None]:
 
 
 def load_enriched_data() -> Optional[pl.DataFrame]:
-    """Loads and deduplicates the enriched data.
+    """Loads the enriched data from the JSON file.
 
     Returns
     -------
@@ -37,25 +37,29 @@ def load_enriched_data() -> Optional[pl.DataFrame]:
     """
     if not ENRICHED_PLAYLIST_JSON_PATH.exists():
         return None
+    return pl.read_ndjson(ENRICHED_PLAYLIST_JSON_PATH)
 
-    enriched_data = pl.read_ndjson(ENRICHED_PLAYLIST_JSON_PATH)
-    
-    # Add a score to prioritize which record to keep
-    enriched_data = enriched_data.with_columns(
+
+def clean_enriched_data(enriched_df: pl.DataFrame) -> pl.DataFrame:
+    """Deduplicates and cleans the enriched data.
+
+    Parameters
+    ----------
+    enriched_df : pl.DataFrame
+        The DataFrame of enriched records.
+
+    Returns
+    -------
+    pl.DataFrame
+        A cleaned DataFrame with duplicates removed.
+    """
+    enriched_df = enriched_df.with_columns(
         (pl.col("guest").is_not_null() & pl.col("movies").is_not_null()).alias("score")
     )
-    
-    # Deduplicate
-    enriched_data = enriched_data.sort("score", descending=True).unique(
+    cleaned_df = enriched_df.sort("score", descending=True).unique(
         subset=["id"], keep="first"
     )
-    
-    # Save the cleaned data
-    cleaned_df = enriched_data.drop("score")
-    cleaned_df.write_ndjson(ENRICHED_PLAYLIST_JSON_PATH)
-    
-    console.log(f"Found and cleaned {len(cleaned_df)} enriched records.")
-    return cleaned_df
+    return cleaned_df.drop("score")
 
 
 def enrich_data(
@@ -70,7 +74,7 @@ def enrich_data(
     enriched_df : Optional[pl.DataFrame]
         A DataFrame of already enriched records.
     """
-    enriched_ids = (
+    enriched_ids: Set[str] = (
         set(enriched_df["id"].to_list()) if enriched_df is not None else set()
     )
     newly_enriched_records = []
@@ -78,19 +82,7 @@ def enrich_data(
     with console.status("Enriching records...") as status:
         for record in playlist_data:
             if record["id"] in enriched_ids:
-                if enriched_df is not None:
-                    existing_record = enriched_df.filter(
-                        pl.col("id") == record["id"]
-                    ).to_dicts()
-                    if (
-                        existing_record
-                        and existing_record[0].get("guest")
-                        and existing_record[0].get("movies")
-                    ):
-                        status.console.log(
-                            f"Skipping {record['id']}: already enriched."
-                        )
-                        continue
+                continue
 
             status.update(f"Enriching {record['id']}...")
             enriched_record = _extract_structured_data_from_record(record)
@@ -103,7 +95,7 @@ def enrich_data(
             combined_df = pl.concat([enriched_df, new_df])
         else:
             combined_df = new_df
-        
+
         combined_df.unique(subset=["id"], keep="last").write_ndjson(
             ENRICHED_PLAYLIST_JSON_PATH
         )
@@ -114,14 +106,16 @@ def enrich_data(
 
 def main():
     """Main entry point for the script."""
-    playlist_data = load_data()
-    enriched_df = load_enriched_data()
-    enrich_data(playlist_data, enriched_df)
-
-
-if __name__ == "__main__":
     try:
-        main()
+        playlist_data = load_playlist_with_subtitles()
+        enriched_df = load_enriched_data()
+        if enriched_df is not None:
+            enriched_df = clean_enriched_data(enriched_df)
+        enrich_data(playlist_data, enriched_df)
     except FileNotFoundError as e:
         console.log(str(e), style="red")
         sys.exit(1)
+
+
+if __name__ == "__main__":
+    main()
