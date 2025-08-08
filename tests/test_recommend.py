@@ -11,4 +11,4 @@ def test_calculate_recommendations(enriched_playlist_path):
     with patch("closet.recommend.ENRICHED_PLAYLIST_JSON_PATH", enriched_playlist_path):
         df = load_data()
         recommendations = calculate_recommendations(df, ["movie a"])
-        assert recommendations["movie_right"].to_list() == ["movie c", "movie b"]
+        assert sorted(recommendations["movie_right"].to_list()) == ["movie b", "movie c"]

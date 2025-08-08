@@ -1,0 +1,32 @@
+name: Check uv.lock
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+
+jobs:
+  check-lockfile:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@v1
+
+      - name: Check lockfile
+        run: |
+          uv pip lock --check
+          if [ $? -ne 0 ]; then
+            echo "uv.lock is out of date, updating..."
+            uv pip lock
+            git config --global user.name 'github-actions[bot]'
+            git config --global user.email 'github-actions[bot]@users.noreply.github.com'
+            git add uv.lock
+            git commit -m "Update uv.lock"
+            git push
+          else
+            echo "uv.lock is up to date."
+          fi
