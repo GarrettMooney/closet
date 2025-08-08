@@ -40,11 +40,13 @@ def calculate_popularity(enriched_data: Iterable[Dict]) -> Counter:
         A Counter object with the popularity of each film.
     """
     return Counter(
-        selection["title"]
-        for record in enriched_data
-        if "movies" in record
-        for selection in record["movies"]
-        if selection["title"]
+        (
+            selection["title"]
+            for record in enriched_data
+            if "movies" in record
+            for selection in record["movies"]
+            if selection["title"]
+        )
     )
 
 

@@ -1,4 +1,5 @@
 import sys
+from itertools import filterfalse
 from typing import Dict, Generator, Iterable, Optional, Set
 
 import polars as pl
@@ -77,17 +78,15 @@ def enrich_data(
     enriched_ids: Set[str] = (
         set(enriched_df["id"].to_list()) if enriched_df is not None else set()
     )
+    
+    records_to_enrich = filterfalse(lambda record: record["id"] in enriched_ids, playlist_data)
+    
     newly_enriched_records = []
-
     with console.status("Enriching records...") as status:
-        for record in playlist_data:
-            if record["id"] in enriched_ids:
-                continue
-
+        for record in records_to_enrich:
             status.update(f"Enriching {record['id']}...")
             enriched_record = _extract_structured_data_from_record(record)
             newly_enriched_records.append(enriched_record)
-            enriched_ids.add(record["id"])
 
     if newly_enriched_records:
         new_df = pl.from_dicts(newly_enriched_records)

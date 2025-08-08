@@ -1,5 +1,4 @@
 import sys
-from enum import Enum
 from typing import List, Tuple
 
 import polars as pl
@@ -56,6 +55,96 @@ def load_data() -> pl.DataFrame:
     return pl.read_ndjson(ENRICHED_PLAYLIST_JSON_PATH).drop_nulls()
 
 
+def get_movie_pairs(df: pl.DataFrame) -> pl.DataFrame:
+    """Get all pairs of movies that appear in the same video.
+
+    Parameters
+    ----------
+    df : pl.DataFrame
+        The enriched playlist data.
+
+    Returns
+    -------
+    pl.DataFrame
+        A DataFrame with pairs of movies.
+    """
+    return df.explode("movies").select(
+        pl.col("id"),
+        pl.col("movies").struct.field("title").str.to_lowercase().alias("movie"),
+    )
+
+
+def calculate_co_occurrence(movie_pairs: pl.DataFrame) -> pl.DataFrame:
+    """Calculates the co-occurrence of movies.
+
+    Parameters
+    ----------
+    movie_pairs : pl.DataFrame
+        A DataFrame with pairs of movies.
+
+    Returns
+    -------
+    pl.DataFrame
+        A DataFrame with the co-occurrence of movies.
+    """
+    return (
+        movie_pairs.join(movie_pairs, on="id")
+        .filter(pl.col("movie") != pl.col("movie_right"))
+        .group_by(["movie", "movie_right"])
+        .agg(pl.len().alias("co_occurrence"))
+    )
+
+
+def calculate_movie_popularity(movie_pairs: pl.DataFrame) -> pl.DataFrame:
+    """Calculates the popularity of each movie.
+
+    Parameters
+    ----------
+    movie_pairs : pl.DataFrame
+        A DataFrame with pairs of movies.
+
+    Returns
+    -------
+    pl.DataFrame
+        A DataFrame with the popularity of each movie.
+    """
+    return movie_pairs.group_by("movie").agg(pl.len().alias("popularity"))
+
+
+def calculate_lift(
+    co_occurrence: pl.DataFrame, movie_popularity: pl.DataFrame
+) -> pl.DataFrame:
+    """Calculates the lift for each movie pair.
+
+    Parameters
+    ----------
+    co_occurrence : pl.DataFrame
+        A DataFrame with the co-occurrence of movies.
+    movie_popularity : pl.DataFrame
+        A DataFrame with the popularity of each movie.
+
+    Returns
+    -------
+    pl.DataFrame
+        A DataFrame with the lift for each movie pair.
+    """
+    return (
+        co_occurrence.join(movie_popularity, left_on="movie", right_on="movie")
+        .join(
+            movie_popularity,
+            left_on="movie_right",
+            right_on="movie",
+            suffix="_right",
+        )
+        .with_columns(
+            (
+                pl.col("co_occurrence")
+                / (pl.col("popularity") * pl.col("popularity_right"))
+            ).alias("lift")
+        )
+    )
+
+
 def calculate_recommendations(
     df: pl.DataFrame, title_list: List[str]
 ) -> pl.DataFrame:
@@ -73,32 +162,11 @@ def calculate_recommendations(
     pl.DataFrame
         A DataFrame with the movie recommendations.
     """
-    movie_pairs = df.explode("movies").select(
-        pl.col("id"),
-        pl.col("movies").struct.field("title").str.to_lowercase().alias("movie"),
-    )
-    co_occurrence = (
-        movie_pairs.join(movie_pairs, on="id")
-        .filter(pl.col("movie") != pl.col("movie_right"))
-        .group_by(["movie", "movie_right"])
-        .agg(pl.len().alias("co_occurrence"))
-    )
-    movie_popularity = movie_pairs.group_by("movie").agg(pl.len().alias("popularity"))
-    recommendations = (
-        co_occurrence.join(movie_popularity, left_on="movie", right_on="movie")
-        .join(
-            movie_popularity,
-            left_on="movie_right",
-            right_on="movie",
-            suffix="_right",
-        )
-        .with_columns(
-            (
-                pl.col("co_occurrence")
-                / (pl.col("popularity") * pl.col("popularity_right"))
-            ).alias("lift")
-        )
-    )
+    movie_pairs = get_movie_pairs(df)
+    co_occurrence = calculate_co_occurrence(movie_pairs)
+    movie_popularity = calculate_movie_popularity(movie_pairs)
+    recommendations = calculate_lift(co_occurrence, movie_popularity)
+
     filtered_recommendations = recommendations.filter(pl.col("movie").is_in(title_list))
     all_scores = filtered_recommendations.group_by("movie_right").agg(
         pl.sum("lift").alias("lift_sum"),

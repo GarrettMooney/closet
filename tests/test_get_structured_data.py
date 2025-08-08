@@ -12,12 +12,6 @@ from closet.get_structured_data import (
 )
 
 
-@pytest.fixture
-def playlist_with_subtitles_path(test_data_dir: Path) -> Path:
-    """Returns the path to the playlist with subtitles test data."""
-    return test_data_dir / "playlist_with_subtitles.json"
-
-
 def test_load_playlist_with_subtitles(tmp_path, playlist_with_subtitles_path):
     """Test that load_playlist_with_subtitles loads the data correctly."""
     # Arrange

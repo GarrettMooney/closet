@@ -1,6 +1,6 @@
 [project]
 name = "closet"
-version = "0.2.0"
+version = "0.2.1"
 description = "Dataset curation for Criterion Collection Closet Picks"
 readme = "README.md"
 authors = [
