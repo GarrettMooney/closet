@@ -118,8 +118,9 @@ def update_enriched_playlist(
     else:
         final_df = newly_enriched_df
 
+    final_df = final_df.unique(subset=["id"], keep="last")
     data_to_save = final_df.select(["id", "url", "title", "subtitles"]).to_dicts()
-    srsly.write_jsonl(PLAYLIST_WITH_SUBTITLES_JSON_PATH, data_to_save)
+    srsly.write_jsonl(PLAYLIST_WITH_SUBTITLES_JSON_PATH, data_to_save, append=False)
     console.log("Playlist with subtitles has been updated.")
 
 

@@ -28,18 +28,34 @@ def load_data() -> Generator[Dict, None, None]:
 
 
 def load_enriched_data() -> Optional[pl.DataFrame]:
-    """Loads the enriched data into a Polars DataFrame.
+    """Loads and deduplicates the enriched data.
 
     Returns
     -------
     Optional[pl.DataFrame]
         A DataFrame of enriched records, or None if the file doesn't exist.
     """
-    if ENRICHED_PLAYLIST_JSON_PATH.exists():
-        enriched_data = pl.read_ndjson(ENRICHED_PLAYLIST_JSON_PATH)
-        console.log(f"Found {len(enriched_data)} enriched records.")
-        return enriched_data
-    return None
+    if not ENRICHED_PLAYLIST_JSON_PATH.exists():
+        return None
+
+    enriched_data = pl.read_ndjson(ENRICHED_PLAYLIST_JSON_PATH)
+    
+    # Add a score to prioritize which record to keep
+    enriched_data = enriched_data.with_columns(
+        (pl.col("guest").is_not_null() & pl.col("movies").is_not_null()).alias("score")
+    )
+    
+    # Deduplicate
+    enriched_data = enriched_data.sort("score", descending=True).unique(
+        subset=["id"], keep="first"
+    )
+    
+    # Save the cleaned data
+    cleaned_df = enriched_data.drop("score")
+    cleaned_df.write_ndjson(ENRICHED_PLAYLIST_JSON_PATH)
+    
+    console.log(f"Found and cleaned {len(cleaned_df)} enriched records.")
+    return cleaned_df
 
 
 def enrich_data(
@@ -57,19 +73,19 @@ def enrich_data(
     enriched_ids = (
         set(enriched_df["id"].to_list()) if enriched_df is not None else set()
     )
+    newly_enriched_records = []
 
     with console.status("Enriching records...") as status:
         for record in playlist_data:
             if record["id"] in enriched_ids:
-                # Check if the record is fully enriched
                 if enriched_df is not None:
-                    enriched_record = enriched_df.filter(
+                    existing_record = enriched_df.filter(
                         pl.col("id") == record["id"]
                     ).to_dicts()
                     if (
-                        enriched_record
-                        and enriched_record[0].get("guest")
-                        and enriched_record[0].get("movies")
+                        existing_record
+                        and existing_record[0].get("guest")
+                        and existing_record[0].get("movies")
                     ):
                         status.console.log(
                             f"Skipping {record['id']}: already enriched."
@@ -78,12 +94,22 @@ def enrich_data(
 
             status.update(f"Enriching {record['id']}...")
             enriched_record = _extract_structured_data_from_record(record)
-            srsly.write_jsonl(
-                ENRICHED_PLAYLIST_JSON_PATH, [enriched_record], append=True
-            )
+            newly_enriched_records.append(enriched_record)
             enriched_ids.add(record["id"])
 
-    console.log("Enriched playlist data has been created.")
+    if newly_enriched_records:
+        new_df = pl.from_dicts(newly_enriched_records)
+        if enriched_df is not None:
+            combined_df = pl.concat([enriched_df, new_df])
+        else:
+            combined_df = new_df
+        
+        combined_df.unique(subset=["id"], keep="last").write_ndjson(
+            ENRICHED_PLAYLIST_JSON_PATH
+        )
+        console.log(f"Enriched and saved {len(newly_enriched_records)} new records.")
+    else:
+        console.log("No new records to enrich.")
 
 
 def main():
