@@ -1,6 +1,6 @@
 # Data Enrichment Report
 
-*Last updated: 2025-08-08 06:09:49 UTC*
+*Last updated: 2025-08-08 06:25:08 UTC*
 
 ## Summary
 
@@ -13,8 +13,8 @@
 
 ## Structured Data Enrichment
 
-- **Videos with structured data:** 267
-- **Enrichment percentage:** 95.02%
+- **Videos with structured data:** 266
+- **Enrichment percentage:** 94.66%
 
 ---
 
