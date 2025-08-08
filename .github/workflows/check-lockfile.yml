@@ -18,10 +18,10 @@ jobs:
 
       - name: Check lockfile
         run: |
-          uv pip lock --check
+          uv lock --check
           if [ $? -ne 0 ]; then
             echo "uv.lock is out of date, updating..."
-            uv pip lock
+            uv lock
             git config --global user.name 'github-actions[bot]'
             git config --global user.email 'github-actions[bot]@users.noreply.github.com'
             git add uv.lock
