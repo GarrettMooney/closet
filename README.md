@@ -22,12 +22,12 @@ We will start with things that are relatively simple like counting and full-text
 Our automated pipeline runs weekly, transforming raw playlist data into rich, structured insights:
 
 ```
-📺 Fetch Videos → 📝 Extract Subtitles → 🤖 LLM Analysis → 📊 Generate Report on Completeness
+📺 Fetch Videos → 📝 Extract Subtitles → 🤖 LLM Analysis → 📊 Generate Report
 ```
 
-- **📺 Data Collection**: Automatically discovers new videos from the Criterion Closet playlist
-- **📝 Content Enrichment**: Downloads subtitles, metadata, and uses LLMs to extract film mentions
-- **📊 Reporting**: Generates data completeness reports and tracks enrichment progress
+- **📺 Data Collection**: Automatically discovers new videos from the Criterion Closet playlist.
+- **📝 Content Enrichment**: Downloads subtitles and uses LLMs to extract film mentions.
+- **📊 Reporting**: Generates data completeness reports and tracks enrichment progress.
 
 ## 🚀 Quick Start
 
@@ -38,6 +38,14 @@ uv pip install -e .
 ```
 
 ## 💡 Usage
+
+### Update the Dataset
+
+To run the entire data pipeline, from fetching new videos to enriching the data, use the following command:
+
+```bash
+uv run update-playlist
+```
 
 ### Find the Most Popular Films
 

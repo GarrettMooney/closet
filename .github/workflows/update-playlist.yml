@@ -31,21 +31,15 @@ jobs:
       - name: Install dependencies
         run: uv sync --locked
 
-      - name: Step 1 - Fetch new videos
-        run: uv run get-new-videos
-
-      - name: Step 2 - Get subtitles
-        run: uv run get-subtitles
-
-      - name: Step 3 - Get structured data
-        run: uv run get-structured-data
+      - name: Run data pipeline
+        run: uv run update-playlist
         env:
           GOOGLE_API_KEY: ${{ secrets.GOOGLE_API_KEY }}
 
-      - name: Step 4 - Generate report
+      - name: Generate report
         run: uv run report
 
-      - name: Step 5 - Conditional commit and push
+      - name: Conditional commit and push
         run: uv run scripts/conditional_commit.py
 
       - name: Upload log artifact
