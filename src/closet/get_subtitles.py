@@ -5,7 +5,11 @@ from typing import Tuple
 import polars as pl
 import srsly
 
-from closet.config import PLAYLIST_JSON_PATH, PLAYLIST_WITH_SUBTITLES_JSON_PATH
+from closet.config import (
+    PLAYLIST_JSON_PATH,
+    PLAYLIST_WITH_SUBTITLES_JSON_PATH,
+    COOKIES_FILE,
+)
 from closet.errors import RateLimitError, SubtitleError
 from closet.logging import console
 from closet.subtitles import get_subtitles
@@ -92,20 +96,32 @@ def fetch_subtitles_for_videos(videos_df: pl.DataFrame) -> pl.DataFrame:
         A DataFrame with the subtitles added.
     """
     subtitles = []
+    cookies_file = (
+        COOKIES_FILE if COOKIES_FILE and Path(COOKIES_FILE).exists() else None
+    )
+
+    if cookies_file:
+        console.log(f"Using cookies file: {cookies_file}", style="blue")
+    else:
+        console.log(
+            "No cookies file found. This may trigger YouTube's anti-bot detection.",
+            style="yellow",
+        )
+
     for video in videos_df.iter_rows(named=True):
         video_id = video["id"]
         retries = 3
-        base_delay = 1.0
+        base_delay = 2.0  # Increased base delay
         for attempt in range(retries):
             try:
-                subtitle = get_subtitles(video_id)
+                subtitle = get_subtitles(video_id, cookies_file=cookies_file)
                 subtitles.append(subtitle)
                 console.log(
                     f"Successfully fetched subtitles for {video_id}", style="green"
                 )
                 break
             except RateLimitError as e:
-                delay = base_delay * (2**attempt) + random.uniform(0, 1)
+                delay = base_delay * (2**attempt) + random.uniform(0, 2)
                 console.log(f"{e}. Retrying in {delay:.2f} seconds...", style="yellow")
                 time.sleep(delay)
             except SubtitleError as e:
@@ -123,7 +139,9 @@ def fetch_subtitles_for_videos(videos_df: pl.DataFrame) -> pl.DataFrame:
         else:
             console.log(f"All retries failed for {video_id}.", style="red")
             subtitles.append(None)
-        time.sleep(1)
+
+        # Longer sleep between videos to avoid triggering rate limits
+        time.sleep(random.uniform(2, 4))
 
     return videos_df.with_columns(pl.Series("subtitles", subtitles))
 

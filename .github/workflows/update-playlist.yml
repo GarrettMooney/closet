@@ -28,13 +28,31 @@ jobs:
         with:
           python-version: "3.13"
 
+      - name: Install system dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get update install -y ffmpeg
+
       - name: Install dependencies
         run: uv sync --locked
+
+      - name: Setup YouTube cookies (if available)
+        if: ${{ secrets.YOUTUBE_COOKIES }}
+        run: |
+          echo "${{ secrets.YOUTUBE_COOKIES }}" > data/cookies.txt
+          echo "YOUTUBE_COOKIES_FILE=data/cookies.txt" >> $GITHUB_ENV
 
       - name: Run data pipeline
         run: uv run update-playlist
         env:
           GOOGLE_API_KEY: ${{ secrets.GOOGLE_API_KEY }}
+          YOUTUBE_COOKIES_FILE: ${{ env.YOUTUBE_COOKIES_FILE }}
+
+      - name: Clean up crumbs
+        run: |
+          if [ -f data/cookies.txt ]; then
+            rm data/cookies.txt
+          fi
 
       - name: Generate report
         run: uv run report

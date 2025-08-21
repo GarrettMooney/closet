@@ -1,4 +1,5 @@
 from pathlib import Path
+import os
 
 YOUTUBE_PLAYLIST_URL = "https://www.youtube.com/playlist?list=PL7D89754A5DAD1E8E"
 DATA_DIR = Path("data")
@@ -8,3 +9,6 @@ ENRICHED_PLAYLIST_JSON_PATH = DATA_DIR / "enriched_playlist.json"
 LOG_HTML_PATH = DATA_DIR / "log.html"
 REPORT_MD_PATH = Path("report.md")
 INDEX_NAME = "closet"
+
+# Cookies configuration
+COOKIES_FILE = os.getenv("YOUTUBE_COOKIES_FILE", DATA_DIR / "cookies.txt")
