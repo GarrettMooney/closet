@@ -27,21 +27,19 @@ jobs:
       - name: Check current yt-dlp version
         id: current
         run: |
+          uv sync
           uv pip list | grep yt-dlp | awk '{print $2}' > current_version.txt
           echo "version=$(cat current_version.txt)" >> $GITHUB_OUTPUT
 
-      - name: Update yt-dlp
-        run: uv pip install -U yt-dlp
+      - name: Update yt-dlp in lockfile
+        run: uv lock --upgrade-package yt-dlp
 
       - name: Check new yt-dlp version
         id: new
         run: |
+          uv sync
           uv pip list | grep yt-dlp | awk '{print $2}' > new_version.txt
           echo "version=$(cat new_version.txt)" >> $GITHUB_OUTPUT
-
-      - name: Update lockfile if version changed
-        if: steps.current.outputs.version != steps.new.outputs.version
-        run: uv lock
 
       - name: Create Pull Request
         if: steps.current.outputs.version != steps.new.outputs.version
