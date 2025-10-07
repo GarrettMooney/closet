@@ -145,9 +145,7 @@ def calculate_lift(
     )
 
 
-def calculate_recommendations(
-    df: pl.DataFrame, title_list: List[str]
-) -> pl.DataFrame:
+def calculate_recommendations(df: pl.DataFrame, title_list: List[str]) -> pl.DataFrame:
     """Calculates movie recommendations.
 
     Parameters

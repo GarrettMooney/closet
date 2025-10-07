@@ -1,5 +1,7 @@
+import os
 import random
 import time
+from datetime import datetime
 from pathlib import Path
 from typing import Tuple
 
@@ -7,9 +9,10 @@ import polars as pl
 import srsly
 
 from closet.config import (
+    COOKIES_FILE,
+    MAX_VIDEOS_PER_RUN,
     PLAYLIST_JSON_PATH,
     PLAYLIST_WITH_SUBTITLES_JSON_PATH,
-    COOKIES_FILE,
 )
 from closet.errors import RateLimitError, SubtitleError
 from closet.logging import console
@@ -83,19 +86,65 @@ def get_videos_to_process(
     )
 
 
-def fetch_subtitles_for_videos(videos_df: pl.DataFrame) -> pl.DataFrame:
+def check_cookies_age(cookies_file: str) -> None:
+    """Check if cookies file is fresh enough and warn if it's stale.
+
+    Parameters
+    ----------
+    cookies_file : str
+        Path to the cookies file.
+    """
+    try:
+        file_path = Path(cookies_file)
+        if not file_path.exists():
+            return
+
+        # Get file modification time
+        mtime = datetime.fromtimestamp(os.path.getmtime(file_path))
+        age_days = (datetime.now() - mtime).days
+
+        if age_days > 30:
+            console.log(
+                f"⚠️  Cookies file is {age_days} days old. "
+                "YouTube cookies should be refreshed every 30 days for best results.",
+                style="yellow bold",
+            )
+        elif age_days > 14:
+            console.log(
+                f"Cookies file is {age_days} days old. Consider refreshing soon.",
+                style="yellow",
+            )
+        else:
+            console.log(f"Cookies file is {age_days} days old (fresh)", style="green")
+    except Exception as e:
+        console.log(f"Could not check cookies age: {e}", style="yellow")
+
+
+def fetch_subtitles_for_videos(
+    videos_df: pl.DataFrame, max_videos: int = None
+) -> pl.DataFrame:
     """Fetches subtitles for the given videos.
 
     Parameters
     ----------
     videos_df : pl.DataFrame
         A DataFrame of videos to process.
+    max_videos : int, optional
+        Maximum number of videos to process in this run. None means process all.
 
     Returns
     -------
     pl.DataFrame
         A DataFrame with the subtitles added.
     """
+    # Limit the number of videos to process if specified
+    if max_videos is not None and len(videos_df) > max_videos:
+        console.log(
+            f"Processing {max_videos} of {len(videos_df)} videos in this batch",
+            style="blue",
+        )
+        videos_df = videos_df.head(max_videos)
+
     subtitles = []
     cookies_file = (
         COOKIES_FILE if COOKIES_FILE and Path(COOKIES_FILE).exists() else None
@@ -103,10 +152,16 @@ def fetch_subtitles_for_videos(videos_df: pl.DataFrame) -> pl.DataFrame:
 
     if cookies_file:
         console.log(f"Using cookies file: {cookies_file}", style="blue")
+        check_cookies_age(cookies_file)
     else:
         console.log(
-            "No cookies file found. This may trigger YouTube's anti-bot detection.",
-            style="yellow",
+            "⚠️  No cookies file found. This may trigger YouTube's anti-bot detection.",
+            style="yellow bold",
+        )
+        console.log(
+            "To export cookies: Install a browser extension like 'Get cookies.txt LOCALLY' "
+            "and export cookies from youtube.com while logged in.",
+            style="cyan",
         )
 
     for video in videos_df.iter_rows(named=True):
@@ -182,7 +237,15 @@ def main():
         console.log("No new videos or missing subtitles to process. Exiting.")
         return
 
-    newly_enriched_df = fetch_subtitles_for_videos(videos_to_process_df)
+    if MAX_VIDEOS_PER_RUN:
+        console.log(
+            f"Batch processing enabled: max {MAX_VIDEOS_PER_RUN} videos per run",
+            style="blue",
+        )
+
+    newly_enriched_df = fetch_subtitles_for_videos(
+        videos_to_process_df, max_videos=MAX_VIDEOS_PER_RUN
+    )
     update_enriched_playlist(newly_enriched_df, existing_enriched_df)
 
 

@@ -78,9 +78,11 @@ def enrich_data(
     enriched_ids: Set[str] = (
         set(enriched_df["id"].to_list()) if enriched_df is not None else set()
     )
-    
-    records_to_enrich = filterfalse(lambda record: record["id"] in enriched_ids, playlist_data)
-    
+
+    records_to_enrich = filterfalse(
+        lambda record: record["id"] in enriched_ids, playlist_data
+    )
+
     newly_enriched_records = []
     with console.status("Enriching records...") as status:
         for record in records_to_enrich:

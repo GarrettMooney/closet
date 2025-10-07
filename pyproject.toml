@@ -1,19 +1,19 @@
 [project]
 name = "closet"
-version = "0.3.0"
+version = "0.3.1"
 description = "Dataset curation for Criterion Collection Closet Picks"
 readme = "README.md"
 authors = [
     { name = "Garrett Mooney", email = "garrettrmooney@gmail.com" }
 ]
-requires-python = ">=3.13"
+requires-python = ">=3.11"
 dependencies = [
-    "mirascope[google]>=1.25.5",
-    "polars>=1.32.0",
-    "rich>=13.7.1",
-    "srsly>=2.4.8",
-    "typer>=0.12.3",
-    "yt-dlp>=2024.7.25",
+    "mirascope[google]~=1.25",
+    "polars~=1.32",
+    "rich~=13.7",
+    "srsly~=2.4",
+    "typer~=0.12",
+    "yt-dlp~=2024.12",
 ]
 
 [project.scripts]

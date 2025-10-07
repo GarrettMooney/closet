@@ -1,6 +1,6 @@
 from unittest.mock import patch
 
-import polars as pl
+
 from closet.recommend import (
     calculate_co_occurrence,
     calculate_lift,
@@ -18,7 +18,10 @@ def test_calculate_recommendations(enriched_playlist_path):
     with patch("closet.recommend.ENRICHED_PLAYLIST_JSON_PATH", enriched_playlist_path):
         df = load_data()
         recommendations = calculate_recommendations(df, ["movie a"])
-        assert sorted(recommendations["movie_right"].to_list()) == ["movie b", "movie c"]
+        assert sorted(recommendations["movie_right"].to_list()) == [
+            "movie b",
+            "movie c",
+        ]
 
 
 def test_get_movie_pairs(enriched_playlist_path):

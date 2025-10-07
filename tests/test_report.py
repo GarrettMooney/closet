@@ -2,7 +2,7 @@ import tempfile
 from pathlib import Path
 from unittest.mock import patch
 
-import polars as pl
+
 from closet.report import generate_report, load_data, save_report_to_markdown
 
 
@@ -27,20 +27,20 @@ def test_save_report_to_markdown(enriched_playlist_path):
     with patch("closet.report.ENRICHED_PLAYLIST_JSON_PATH", enriched_playlist_path):
         df = load_data()
         report = generate_report(df)
-        
+
         # Create a temporary directory for the test
         with tempfile.TemporaryDirectory() as temp_dir:
             report_path = Path(temp_dir) / "test_report.md"
-            
+
             # Save the report to markdown
             save_report_to_markdown(report, report_path)
-            
+
             # Verify the file was created
             assert report_path.exists(), "Report markdown file was not created"
-            
+
             # Read and verify the contents
-            content = report_path.read_text(encoding='utf-8')
-            
+            content = report_path.read_text(encoding="utf-8")
+
             # Check for key elements in the markdown content
             assert "# Data Enrichment Report" in content
             assert "**Total videos:** 3" in content
@@ -49,4 +49,7 @@ def test_save_report_to_markdown(enriched_playlist_path):
             assert "**Videos with structured data:** 3" in content
             assert "**Enrichment percentage:** 100.00%" in content
             assert "Last updated:" in content
-            assert "generated automatically by the Criterion Closet data pipeline" in content
+            assert (
+                "generated automatically by the Criterion Closet data pipeline"
+                in content
+            )

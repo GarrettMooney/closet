@@ -11,6 +11,7 @@ on:
 jobs:
   data-pipeline:
     runs-on: ubuntu-latest
+    timeout-minutes: 30
     permissions:
       contents: write
     
@@ -49,6 +50,7 @@ jobs:
         env:
           GOOGLE_API_KEY: ${{ secrets.GOOGLE_API_KEY }}
           YOUTUBE_COOKIES_FILE: ${{ env.YOUTUBE_COOKIES_FILE }}
+          MAX_VIDEOS_PER_RUN: 50  # Process 50 videos max per workflow run
 
       - name: Clean up crumbs
         run: |
