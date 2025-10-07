@@ -18,8 +18,7 @@ jobs:
 
       - name: Check lockfile
         run: |
-          uv lock --check
-          if [ $? -ne 0 ]; then
+          if ! uv sync --locked --dry-run; then
             echo "uv.lock is out of date, updating..."
             uv lock
             git config --global user.name 'github-actions[bot]'
