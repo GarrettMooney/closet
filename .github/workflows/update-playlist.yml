@@ -37,9 +37,11 @@ jobs:
         run: uv sync --locked
 
       - name: Setup YouTube cookies (if available)
-        if: ${{ secrets.YOUTUBE_COOKIES }}
+        env:
+          YOUTUBE_COOKIES: ${{ secrets.YOUTUBE_COOKIES }}
+        if: env.YOUTUBE_COOKIES != ''
         run: |
-          echo "${{ secrets.YOUTUBE_COOKIES }}" > data/cookies.txt
+          echo "$YOUTUBE_COOKIES" > data/cookies.txt
           echo "YOUTUBE_COOKIES_FILE=data/cookies.txt" >> $GITHUB_ENV
 
       - name: Run data pipeline
