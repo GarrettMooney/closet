@@ -1,4 +1,5 @@
 import sys
+from pathlib import Path
 from typing import Dict
 
 import polars as pl
@@ -6,7 +7,6 @@ import srsly
 
 from closet.config import ENRICHED_PLAYLIST_JSON_PATH, REPORT_MD_PATH
 from closet.logging import console
-from pathlib import Path
 
 
 def load_data() -> pl.DataFrame:
@@ -101,9 +101,9 @@ def save_report_to_markdown(report: Dict[str, float], output_path: Path):
         Path where the markdown file should be saved.
     """
     from datetime import datetime
-    
+
     current_time = datetime.now().strftime("%Y-%m-%d %H:%M:%S UTC")
-    
+
     markdown_content = f"""# Data Enrichment Report
 
 *Last updated: {current_time}*
@@ -126,8 +126,8 @@ def save_report_to_markdown(report: Dict[str, float], output_path: Path):
 
 *This report was generated automatically by the Criterion Closet data pipeline.*
 """
-    
-    with open(output_path, 'w', encoding='utf-8') as f:
+
+    with open(output_path, "w", encoding="utf-8") as f:
         f.write(markdown_content)
 
 

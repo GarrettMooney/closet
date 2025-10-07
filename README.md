@@ -37,6 +37,26 @@ Install the project using `uv`:
 uv pip install -e .
 ```
 
+### 🍪 YouTube Cookies Setup (Recommended)
+
+To avoid YouTube's anti-bot detection and access all videos, you'll need to provide authentication cookies:
+
+1. **Install a cookie export extension** in your browser:
+   - Chrome/Edge: [Get cookies.txt LOCALLY](https://chromewebstore.google.com/detail/get-cookiestxt-locally/cclelndahbckbenkjhflpdbgdldlbecc)
+   - Firefox: [cookies.txt](https://addons.mozilla.org/en-US/firefox/addon/cookies-txt/)
+
+2. **Export your YouTube cookies**:
+   - Log in to [youtube.com](https://youtube.com) in your browser
+   - Click the extension icon on youtube.com
+   - Export cookies to `data/cookies.txt`
+
+3. **Keep cookies fresh**:
+   - Cookies expire after ~30 days
+   - Re-export if you see "not available on this app" errors
+   - The pipeline will warn you when cookies are getting stale
+
+For GitHub Actions, add cookies as a secret named `YOUTUBE_COOKIES`.
+
 ## 💡 Usage
 
 ### Update the Dataset

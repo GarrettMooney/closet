@@ -1,9 +1,8 @@
 import json
-from pathlib import Path
 from unittest.mock import patch
 
 import polars as pl
-import pytest
+
 from closet.get_structured_data import (
     clean_enriched_data,
     enrich_data,
@@ -22,7 +21,9 @@ def test_load_playlist_with_subtitles(tmp_path, playlist_with_subtitles_path):
             f.write(json.dumps(item) + "\n")
 
     # Act
-    with patch("closet.get_structured_data.PLAYLIST_WITH_SUBTITLES_JSON_PATH", data_path):
+    with patch(
+        "closet.get_structured_data.PLAYLIST_WITH_SUBTITLES_JSON_PATH", data_path
+    ):
         data = list(load_playlist_with_subtitles())
 
     # Assert
@@ -94,9 +95,7 @@ def test_enrich_data_already_enriched(mock_extract, tmp_path):
     """Test that enrich_data skips already enriched records."""
     # Arrange
     playlist_data = [{"id": "1", "title": "video 1"}]
-    enriched_df = pl.DataFrame(
-        [{"id": "1", "guest": "guest 1", "movies": ["movie 1"]}]
-    )
+    enriched_df = pl.DataFrame([{"id": "1", "guest": "guest 1", "movies": ["movie 1"]}])
     data_path = tmp_path / "enriched_playlist.json"
 
     # Act

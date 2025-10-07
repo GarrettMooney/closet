@@ -1,8 +1,8 @@
 import sys
 
 from closet.get_new_videos import main as get_new_videos
-from closet.get_subtitles import main as get_subtitles
 from closet.get_structured_data import main as get_structured_data
+from closet.get_subtitles import main as get_subtitles
 from closet.logging import console
 
 
@@ -22,7 +22,9 @@ def main():
 
         console.log("Pipeline finished successfully.", style="bold green")
     except Exception as e:
-        console.log(f"An error occurred during the pipeline execution: {e}", style="bold red")
+        console.log(
+            f"An error occurred during the pipeline execution: {e}", style="bold red"
+        )
         sys.exit(1)
 
 

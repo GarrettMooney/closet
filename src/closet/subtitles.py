@@ -36,7 +36,21 @@ def get_subtitles(video_id: str, language: str = "en", cookies_file: str = None)
             elif "Sign in to confirm" in error_message or "not a bot" in error_message:
                 raise SubtitleError(
                     f"YouTube anti-bot detection triggered for {video_id}. "
-                    "Consider using cookies or running from a different environment."
+                    "Your cookies may be stale or invalid. Try refreshing them."
+                )
+            elif "not available on this app" in error_message.lower():
+                raise SubtitleError(
+                    f"Video {video_id} blocked by YouTube. "
+                    "This usually means stale cookies or outdated yt-dlp. "
+                    "Try: 1) Update cookies, 2) Update yt-dlp"
+                )
+            elif (
+                "login required" in error_message.lower()
+                or "members-only" in error_message.lower()
+            ):
+                raise SubtitleError(
+                    f"Video {video_id} requires authentication. "
+                    "Ensure your cookies file is from a logged-in YouTube session."
                 )
             else:
                 raise SubtitleError(
@@ -79,12 +93,22 @@ def _download_subtitles(
     # Add additional headers and options to avoid bot detection
     base_cmd.extend(
         [
+            # Use Android client to avoid restrictions
+            "--extractor-args",
+            "youtube:player_client=android,web",
+            "--extractor-args",
+            "youtube:player_skip=webpage,configs",
+            # Updated user agent
             "--user-agent",
-            "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36",
+            "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36",
+            # Add delays to appear more human
             "--sleep-requests",
             "1",  # Sleep between requests
             "--sleep-subtitles",
             "1",  # Sleep between subtitle requests
+            # Additional anti-bot options
+            "--no-check-certificates",
+            "--prefer-free-formats",
         ]
     )
 
