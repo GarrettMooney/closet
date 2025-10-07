@@ -16,9 +16,14 @@ jobs:
       - name: Install uv
         uses: astral-sh/setup-uv@v1
 
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: "3.13"
+
       - name: Check lockfile
         run: |
-          if ! uv sync --locked --dry-run; then
+          uv sync --locked || {
             echo "uv.lock is out of date, updating..."
             uv lock
             git config --global user.name 'github-actions[bot]'
@@ -26,6 +31,6 @@ jobs:
             git add uv.lock
             git commit -m "Update uv.lock"
             git push
-          else
-            echo "uv.lock is up to date."
-          fi
+            exit 1
+          }
+          echo "uv.lock is up to date."
